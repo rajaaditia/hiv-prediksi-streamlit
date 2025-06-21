@@ -33,7 +33,11 @@ if uploaded_file:
     # Preprocessing
     st.header("2. Preprocessing")
     data = load_and_preprocess(df)
-    st.write("Data setelah Encoding:")
+
+    # Filter hanya kelas 0 dan 1 (binary classification)
+    data = data[data['Result'].isin([0, 1])].reset_index(drop=True)
+
+    st.write("Data setelah Encoding dan Filtering (hanya kelas 0 & 1):")
     st.dataframe(data.head())
 
     X = data.drop('Result', axis=1)
@@ -50,13 +54,13 @@ if uploaded_file:
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
 
-    # Evaluasi manual (agar sesuai dengan laporan)
-    st.subheader("Evaluasi Model")
+    # Evaluasi manual (binary classification)
     acc = accuracy_score(y_test, y_pred)
-    prec = precision_score(y_test, y_pred, average='macro', zero_division=0)
-    rec = recall_score(y_test, y_pred, average='macro', zero_division=0)
-    f1 = f1_score(y_test, y_pred, average='macro', zero_division=0)
+    prec = precision_score(y_test, y_pred, average='binary', pos_label=1, zero_division=0)
+    rec = recall_score(y_test, y_pred, average='binary', pos_label=1, zero_division=0)
+    f1 = f1_score(y_test, y_pred, average='binary', pos_label=1, zero_division=0)
 
+    st.subheader("Evaluasi Model")
     st.markdown(f"**Akurasi:** {acc * 100:.2f}%")
     st.markdown(f"**Precision:** {prec * 100:.2f}%")
     st.markdown(f"**Recall:** {rec * 100:.2f}%")
