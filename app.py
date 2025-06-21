@@ -55,14 +55,17 @@ if uploaded_file:
     positive = train_df[train_df['Result'] == 1]
     negative = train_df[train_df['Result'] == 0]
 
-    positive_upsampled = resample(positive,
-                                  replace=True,
-                                  n_samples=len(negative),
-                                  random_state=42)
-
-    balanced_train = pd.concat([negative, positive_upsampled]).sample(frac=1, random_state=42)
-    X_train = balanced_train.drop('Result', axis=1)
-    y_train = balanced_train['Result']
+    if len(positive) > 0:
+        positive_upsampled = resample(positive,
+                                      replace=True,
+                                      n_samples=len(negative),
+                                      random_state=42)
+        balanced_train = pd.concat([negative, positive_upsampled]).sample(frac=1, random_state=42)
+        X_train = balanced_train.drop('Result', axis=1)
+        y_train = balanced_train['Result']
+    else:
+        st.error("Jumlah data kelas 1 terlalu sedikit setelah sampling. Silakan gunakan lebih banyak data atau ubah sampling.")
+        st.stop()
 
     # Verifikasi balancing
     st.write("Distribusi data training setelah balancing:", y_train.value_counts())
