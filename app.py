@@ -39,11 +39,13 @@ if uploaded_file:
     X = data.drop('Result', axis=1)
     y = data['Result']
 
-    # Split data
+    # Split data 80% train, 20% test
+    st.header("3. Split Data (80% Train, 20% Test)")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    st.write(f"Jumlah Data Training: {X_train.shape[0]} | Jumlah Data Testing: {X_test.shape[0]}")
 
     # Training dan Hyperparameter Tuning
-    st.header("3. Pelatihan Model dengan GridSearchCV")
+    st.header("4. Pelatihan Model dengan GridSearchCV")
     param_grid = {
         'n_estimators': [100, 200],
         'max_depth': [5, 10],
@@ -65,8 +67,8 @@ if uploaded_file:
     fig, ax = plt.subplots()
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
     ax.set_title("Confusion Matrix")
-    ax.set_xlabel("Prediksi")
-    ax.set_ylabel("Aktual")
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("Actual")
     st.pyplot(fig)
 
     # Feature Importance
