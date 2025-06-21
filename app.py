@@ -37,35 +37,36 @@ if uploaded_file:
 
     # Filter hanya kelas 0 dan 1 (binary classification)
     data = data[data['Result'].isin([0, 1])].reset_index(drop=True)
+    st.write("Data setelah Encoding dan Filtering (hanya kelas 0 & 1):")
+    st.dataframe(data.head())
 
-    # BALANCING DATA: oversampling kelas minoritas (positif)
-    positive = data[data['Result'] == 1]
-    negative = data[data['Result'] == 0]
+    # SPLIT DATA SEBELUM BALANCING
+    X = data.drop('Result', axis=1)
+    y = data['Result']
 
-    # Tampilkan jumlah awal untuk cek
-    st.write(f"Jumlah awal kelas 0: {len(negative)} | kelas 1: {len(positive)}")
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y)
 
-    # Oversampling positive
+    # BALANCING HANYA DATA TRAINING
+    train_df = pd.concat([X_train, y_train], axis=1)
+    positive = train_df[train_df['Result'] == 1]
+    negative = train_df[train_df['Result'] == 0]
+
     positive_upsampled = resample(positive,
                                   replace=True,
                                   n_samples=len(negative),
                                   random_state=42)
 
-    balanced_df = pd.concat([negative, positive_upsampled]).sample(frac=1, random_state=42)
+    balanced_train = pd.concat([negative, positive_upsampled]).sample(frac=1, random_state=42)
+    X_train = balanced_train.drop('Result', axis=1)
+    y_train = balanced_train['Result']
 
-    # Verifikasi hasil balancing
-    st.write("Distribusi setelah balancing:", balanced_df['Result'].value_counts())
-
-    X = balanced_df.drop('Result', axis=1)
-    y = balanced_df['Result']
-
-    # Split data 80% train, 20% test
-    st.header("3. Split Data (80% Train, 20% Test)")
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    # Verifikasi balancing
+    st.write("Distribusi data training setelah balancing:", y_train.value_counts())
     st.write(f"Jumlah Data Training: {X_train.shape[0]} | Jumlah Data Testing: {X_test.shape[0]}")
 
     # Train model tanpa tuning (seperti di Colab)
-    st.header("4. Pelatihan Model Random Forest Tanpa Tuning")
+    st.header("3. Pelatihan Model Random Forest Tanpa Tuning")
     model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
