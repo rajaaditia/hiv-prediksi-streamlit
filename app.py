@@ -41,7 +41,7 @@ if uploaded_file:
 
     # Split data 80% train, 20% test
     st.header("3. Split Data (80% Train, 20% Test)")
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     st.write(f"Jumlah Data Training: {X_train.shape[0]} | Jumlah Data Testing: {X_test.shape[0]}")
 
     # Training dan Hyperparameter Tuning
@@ -59,10 +59,11 @@ if uploaded_file:
 
     # Evaluasi
     st.subheader("Evaluasi Model")
-    report = classification_report(y_test, y_pred, output_dict=True)
-    st.write(pd.DataFrame(report).transpose())
+    report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
+    st.dataframe(pd.DataFrame(report).transpose())
 
     # Confusion Matrix
+    st.subheader("Confusion Matrix")
     cm = confusion_matrix(y_test, y_pred)
     fig, ax = plt.subplots()
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
