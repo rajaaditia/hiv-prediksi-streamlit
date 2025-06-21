@@ -6,6 +6,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.utils import resample
 
 st.set_page_config(page_title="Prediksi HIV", layout="wide")
 
@@ -40,8 +41,20 @@ if uploaded_file:
     st.write("Data setelah Encoding dan Filtering (hanya kelas 0 & 1):")
     st.dataframe(data.head())
 
-    X = data.drop('Result', axis=1)
-    y = data['Result']
+    # BALANCING DATA: oversampling kelas minoritas (positif)
+    data_balanced = data.copy()
+    positive = data_balanced[data_balanced['Result'] == 1]
+    negative = data_balanced[data_balanced['Result'] == 0]
+
+    positive_upsampled = resample(positive,
+                                  replace=True,
+                                  n_samples=len(negative),
+                                  random_state=42)
+
+    balanced_df = pd.concat([negative, positive_upsampled]).sample(frac=1, random_state=42)
+
+    X = balanced_df.drop('Result', axis=1)
+    y = balanced_df['Result']
 
     # Split data 80% train, 20% test
     st.header("3. Split Data (80% Train, 20% Test)")
