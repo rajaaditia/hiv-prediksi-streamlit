@@ -13,7 +13,7 @@ st.title("Prediksi Risiko HIV dengan Random Forest")
 
 @st.cache_data
 def load_data():
-    return pd.read_csv("hiv_dataset.csv")
+    return pd.read_csv("hIV_dataset.csv")
 
 df = load_data()
 st.subheader("Dataset HIV")
