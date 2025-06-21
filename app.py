@@ -38,20 +38,23 @@ if uploaded_file:
     # Filter hanya kelas 0 dan 1 (binary classification)
     data = data[data['Result'].isin([0, 1])].reset_index(drop=True)
 
-    st.write("Data setelah Encoding dan Filtering (hanya kelas 0 & 1):")
-    st.dataframe(data.head())
-
     # BALANCING DATA: oversampling kelas minoritas (positif)
-    data_balanced = data.copy()
-    positive = data_balanced[data_balanced['Result'] == 1]
-    negative = data_balanced[data_balanced['Result'] == 0]
+    positive = data[data['Result'] == 1]
+    negative = data[data['Result'] == 0]
 
+    # Tampilkan jumlah awal untuk cek
+    st.write(f"Jumlah awal kelas 0: {len(negative)} | kelas 1: {len(positive)}")
+
+    # Oversampling positive
     positive_upsampled = resample(positive,
                                   replace=True,
                                   n_samples=len(negative),
                                   random_state=42)
 
     balanced_df = pd.concat([negative, positive_upsampled]).sample(frac=1, random_state=42)
+
+    # Verifikasi hasil balancing
+    st.write("Distribusi setelah balancing:", balanced_df['Result'].value_counts())
 
     X = balanced_df.drop('Result', axis=1)
     y = balanced_df['Result']
@@ -78,6 +81,9 @@ if uploaded_file:
     st.markdown(f"**Precision:** {prec * 100:.2f}%")
     st.markdown(f"**Recall:** {rec * 100:.2f}%")
     st.markdown(f"**F1-Score:** {f1 * 100:.2f}%")
+
+    # Distribusi hasil prediksi
+    st.write("Distribusi prediksi model:", pd.Series(y_pred).value_counts())
 
     # Confusion Matrix
     st.subheader("Confusion Matrix")
