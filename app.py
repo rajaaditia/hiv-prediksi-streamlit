@@ -53,9 +53,9 @@ if uploaded_file:
     # Evaluasi manual (agar sesuai dengan laporan)
     st.subheader("Evaluasi Model")
     acc = accuracy_score(y_test, y_pred)
-    prec = precision_score(y_test, y_pred)
-    rec = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, average='macro', zero_division=0)
+    rec = recall_score(y_test, y_pred, average='macro', zero_division=0)
+    f1 = f1_score(y_test, y_pred, average='macro', zero_division=0)
 
     st.markdown(f"**Akurasi:** {acc * 100:.2f}%")
     st.markdown(f"**Precision:** {prec * 100:.2f}%")
