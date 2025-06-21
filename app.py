@@ -3,9 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
 
 st.set_page_config(page_title="Prediksi HIV", layout="wide")
 
@@ -44,23 +44,23 @@ if uploaded_file:
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     st.write(f"Jumlah Data Training: {X_train.shape[0]} | Jumlah Data Testing: {X_test.shape[0]}")
 
-    # Training dan Hyperparameter Tuning
-    st.header("4. Pelatihan Model dengan GridSearchCV")
-    param_grid = {
-        'n_estimators': [100, 200],
-        'max_depth': [5, 10],
-        'min_samples_split': [2, 5]
-    }
+    # Train model tanpa tuning (seperti di Colab)
+    st.header("4. Pelatihan Model Random Forest Tanpa Tuning")
+    model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
 
-    grid = GridSearchCV(RandomForestClassifier(random_state=42), param_grid, cv=5, scoring='f1_macro', n_jobs=-1)
-    grid.fit(X_train, y_train)
-    best_model = grid.best_estimator_
-    y_pred = best_model.predict(X_test)
-
-    # Evaluasi
+    # Evaluasi manual (agar sesuai dengan laporan)
     st.subheader("Evaluasi Model")
-    report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
-    st.dataframe(pd.DataFrame(report).transpose())
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred)
+    rec = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+
+    st.markdown(f"**Akurasi:** {acc * 100:.2f}%")
+    st.markdown(f"**Precision:** {prec * 100:.2f}%")
+    st.markdown(f"**Recall:** {rec * 100:.2f}%")
+    st.markdown(f"**F1-Score:** {f1 * 100:.2f}%")
 
     # Confusion Matrix
     st.subheader("Confusion Matrix")
@@ -74,7 +74,7 @@ if uploaded_file:
 
     # Feature Importance
     st.subheader("Feature Importance")
-    importances = best_model.feature_importances_ * 100
+    importances = model.feature_importances_ * 100
     feature_df = pd.DataFrame({'Fitur': X.columns, 'Importance (%)': importances})
     feature_df = feature_df.sort_values(by='Importance (%)', ascending=True)
 
@@ -89,4 +89,9 @@ if uploaded_file:
 
     # Download hasil
     st.subheader("Unduh Laporan Evaluasi")
-    st.download_button("Download Evaluasi", pd.DataFrame(report).transpose().to_csv(), file_name="evaluasi_model.csv")
+    eval_df = pd.DataFrame({
+        'Metrik': ['Akurasi', 'Precision', 'Recall', 'F1-score'],
+        'Hasil (%)': [f"{acc * 100:.2f}%", f"{prec * 100:.2f}%", f"{rec * 100:.2f}%", f"{f1 * 100:.2f}%"]
+    })
+    st.dataframe(eval_df)
+    st.download_button("Download Evaluasi", eval_df.to_csv(index=False), file_name="evaluasi_model.csv")
