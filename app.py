@@ -40,9 +40,12 @@ if uploaded_file:
     st.write("Data setelah Encoding dan Filtering (hanya kelas 0 & 1):")
     st.dataframe(data.head())
 
+    # Sampling hanya 20% dari data untuk meniru laporan Colab
+    data_sampled = data.sample(frac=0.2, random_state=42).reset_index(drop=True)
+
     # SPLIT DATA SEBELUM BALANCING
-    X = data.drop('Result', axis=1)
-    y = data['Result']
+    X = data_sampled.drop('Result', axis=1)
+    y = data_sampled['Result']
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y)
@@ -63,6 +66,7 @@ if uploaded_file:
 
     # Verifikasi balancing
     st.write("Distribusi data training setelah balancing:", y_train.value_counts())
+    st.write("Distribusi kelas di data testing:", y_test.value_counts())
     st.write(f"Jumlah Data Training: {X_train.shape[0]} | Jumlah Data Testing: {X_test.shape[0]}")
 
     # Train model tanpa tuning (seperti di Colab)
