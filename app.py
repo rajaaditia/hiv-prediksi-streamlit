@@ -41,7 +41,7 @@ if uploaded_file:
     st.dataframe(data.head())
 
     # Sampling hanya 20% dari data untuk meniru laporan Colab
-    data_sampled = data.sample(frac=0.2, random_state=42).reset_index(drop=True)
+    data_sampled = data.reset_index(drop=True)
 
     # SPLIT DATA SEBELUM BALANCING
     X = data_sampled.drop('Result', axis=1)
