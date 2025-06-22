@@ -52,14 +52,18 @@ if uploaded_file:
 
     y_pred = model.predict(X_encoded)
 
-    # Evaluasi
-    acc = accuracy_score(y_true, y_pred)
-    prec = precision_score(y_true, y_pred, zero_division=0)
-    rec = recall_score(y_true, y_pred, zero_division=0)
-    f1 = f1_score(y_true, y_pred, zero_division=0)
+# === EVALUASI ===
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 
 st.subheader("📊 Evaluasi Model")
 
+# Hitung metrik evaluasi
+acc = accuracy_score(y_true, y_pred)
+prec = precision_score(y_true, y_pred, zero_division=0)
+rec = recall_score(y_true, y_pred, zero_division=0)
+f1 = f1_score(y_true, y_pred, zero_division=0)
+
+# Tampilkan sebagai tabel
 eval_df = pd.DataFrame({
     'Metrik': ['Akurasi', 'Precision', 'Recall', 'F1-score'],
     'Hasil (%)': [f"{acc * 100:.2f}%", f"{prec * 100:.2f}%", f"{rec * 100:.2f}%", f"{f1 * 100:.2f}%"]
@@ -67,18 +71,19 @@ eval_df = pd.DataFrame({
 
 st.dataframe(eval_df, use_container_width=True)
 
+# Tambahkan tombol download
+csv_eval = eval_df.to_csv(index=False).encode('utf-8')
+st.download_button("⬇️ Download Evaluasi", csv_eval, file_name="evaluasi_model.csv", mime="text/csv")
 
-    # Confusion Matrix
-    cm = confusion_matrix(y_true, y_pred)
-    fig, ax = plt.subplots()
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
-    ax.set_xlabel("Prediksi")
-    ax.set_ylabel("Aktual")
-    st.pyplot(fig)
+# Tampilkan Confusion Matrix
+st.subheader("📊 Confusion Matrix")
+cm = confusion_matrix(y_true, y_pred)
+fig, ax = plt.subplots()
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
+ax.set_xlabel("Prediksi")
+ax.set_ylabel("Aktual")
+st.pyplot(fig)
 
-    # Hasil prediksi
-    st.subheader("📥 Unduh Prediksi")
-    df_out = df.copy()
     df_out['Prediksi'] = y_pred
     st.write(df_out.head())
 
