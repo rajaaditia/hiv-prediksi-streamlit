@@ -58,7 +58,7 @@ if uploaded_file:
     rec = recall_score(y_true, y_pred, zero_division=0)
     f1 = f1_score(y_true, y_pred, zero_division=0)
 
-  st.subheader("📊 Evaluasi Model")
+st.subheader("📊 Evaluasi Model")
 
 eval_df = pd.DataFrame({
     'Metrik': ['Akurasi', 'Precision', 'Recall', 'F1-score'],
