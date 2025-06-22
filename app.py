@@ -5,12 +5,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
 
-# Konfigurasi halaman
 st.set_page_config(page_title="Prediksi HIV", layout="wide")
 st.title("Prediksi Risiko HIV (Pretrained Random Forest Model)")
 st.markdown("**Kelompok 6 - Universitas Nusa Putra**")
 
-# Load model dan label encoders
+# === Load Model & Encoder ===
 @st.cache_resource
 def load_model_and_encoders():
     with open("randomforest_model.pkl", "rb") as f:
@@ -21,11 +20,10 @@ def load_model_and_encoders():
 
 model, label_encoders = load_model_and_encoders()
 
-# Upload dataset
+# === Upload Dataset ===
 st.header("1. Upload Dataset")
 uploaded_file = st.file_uploader("Unggah file CSV dataset HIV", type="csv")
 
-# Fungsi preprocessing
 def preprocess_input(df, label_encoders):
     df = df.copy()
     for col in df.columns:
@@ -33,7 +31,6 @@ def preprocess_input(df, label_encoders):
             df[col] = label_encoders[col].transform(df[col])
     return df
 
-# Jika file diupload
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.success("✅ Dataset berhasil dimuat!")
@@ -43,57 +40,31 @@ if uploaded_file:
         st.error("❌ Kolom 'Result' tidak ditemukan. Pastikan dataset Anda memiliki kolom ini.")
         st.stop()
 
-    df = df[df['Result'].isin([0, 1])].reset_index(drop=True)
+    df = df[df['Result'].isin([0, 1])]  # filter kelas biner
     X = df.drop('Result', axis=1)
     y_true = df['Result']
 
     try:
         X_encoded = preprocess_input(X, label_encoders)
-
-        # Validasi kolom agar sesuai dengan model
-        expected_cols = model.feature_names_in_
-        missing_cols = [col for col in expected_cols if col not in X_encoded.columns]
-        extra_cols = [col for col in X_encoded.columns if col not in expected_cols]
-
-        if missing_cols:
-            st.error(f"❌ Dataset Anda kekurangan kolom berikut yang dibutuhkan model: {missing_cols}")
-            st.stop()
-
-        if extra_cols:
-            st.warning(f"⚠️ Dataset Anda memiliki kolom tambahan yang tidak digunakan oleh model: {extra_cols}")
-
-        # Tampilkan untuk debug
-        st.write("📌 Fitur yang diminta model:", list(expected_cols))
-        st.write("📌 Kolom dataset setelah encode:", list(X_encoded.columns))
-
-        # Susun ulang kolom agar cocok
-        X_encoded = X_encoded[expected_cols]
-
     except Exception as e:
-        st.error(f"❌ Terjadi kesalahan saat preprocessing: {e}")
+        st.error(f"❌ Terjadi kesalahan saat encoding: {e}")
         st.stop()
 
-    # Prediksi
     y_pred = model.predict(X_encoded)
 
-    # === Evaluasi ===
-    st.subheader("📊 Evaluasi Model")
+    # Evaluasi
     acc = accuracy_score(y_true, y_pred)
     prec = precision_score(y_true, y_pred, zero_division=0)
     rec = recall_score(y_true, y_pred, zero_division=0)
     f1 = f1_score(y_true, y_pred, zero_division=0)
 
-    eval_df = pd.DataFrame({
-        'Metrik': ['Akurasi', 'Precision', 'Recall', 'F1-score'],
-        'Hasil (%)': [f"{acc * 100:.2f}%", f"{prec * 100:.2f}%", f"{rec * 100:.2f}%", f"{f1 * 100:.2f}%"]
-    })
-    st.dataframe(eval_df, use_container_width=True)
-
-    csv_eval = eval_df.to_csv(index=False).encode('utf-8')
-    st.download_button("⬇️ Download Evaluasi", csv_eval, file_name="evaluasi_model.csv", mime="text/csv")
+    st.subheader("📊 Evaluasi Model")
+    st.write(f"**Akurasi:** {acc:.2%}")
+    st.write(f"**Precision:** {prec:.2%}")
+    st.write(f"**Recall:** {rec:.2%}")
+    st.write(f"**F1-Score:** {f1:.2%}")
 
     # Confusion Matrix
-    st.subheader("📊 Confusion Matrix")
     cm = confusion_matrix(y_true, y_pred)
     fig, ax = plt.subplots()
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
@@ -102,10 +73,10 @@ if uploaded_file:
     st.pyplot(fig)
 
     # Hasil prediksi
-    st.subheader("📥 Unduh Hasil Prediksi")
+    st.subheader("📥 Unduh Prediksi")
     df_out = df.copy()
     df_out['Prediksi'] = y_pred
-    st.write("Contoh hasil prediksi:", df_out.head())
+    st.write(df_out.head())
 
     csv_out = df_out.to_csv(index=False).encode('utf-8')
     st.download_button("⬇️ Download Hasil Prediksi", csv_out, file_name="hasil_prediksi.csv", mime="text/csv")
