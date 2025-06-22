@@ -10,7 +10,7 @@ st.set_page_config(page_title="Prediksi HIV", layout="wide")
 st.title("Prediksi Risiko HIV (Pretrained Random Forest Model)")
 st.markdown("**Kelompok 6 - Universitas Nusa Putra**")
 
-# Load model dan encoders
+# Load model dan label encoders
 @st.cache_resource
 def load_model_and_encoders():
     with open("randomforest_model.pkl", "rb") as f:
@@ -25,7 +25,7 @@ model, label_encoders = load_model_and_encoders()
 st.header("1. Upload Dataset")
 uploaded_file = st.file_uploader("Unggah file CSV dataset HIV", type="csv")
 
-# Preprocessing label encoding
+# Fungsi preprocessing
 def preprocess_input(df, label_encoders):
     df = df.copy()
     for col in df.columns:
@@ -33,31 +33,24 @@ def preprocess_input(df, label_encoders):
             df[col] = label_encoders[col].transform(df[col])
     return df
 
-# Proses jika file diunggah
+# Jika file diupload
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.success("✅ Dataset berhasil dimuat!")
     st.write("Contoh data:", df.head())
 
     if 'Result' not in df.columns:
-        st.error("❌ Kolom 'Result' tidak ditemukan. Pastikan dataset memiliki kolom ini.")
+        st.error("❌ Kolom 'Result' tidak ditemukan. Pastikan dataset Anda memiliki kolom ini.")
         st.stop()
 
     df = df[df['Result'].isin([0, 1])].reset_index(drop=True)
     X = df.drop('Result', axis=1)
     y_true = df['Result']
 
+    try:
+        X_encoded = preprocess_input(X, label_encoders)
 
- # Pastikan hanya kolom yang diharapkan yang digunakan, urutannya sama
-try:
-    X_encoded = X_encoded[expected_cols]
-except KeyError as e:
-    st.error("❌ Kolom dalam dataset tidak cocok dengan model yang dilatih. Periksa nama dan urutannya.")
-    st.code(f"Diperlukan kolom: {list(expected_cols)}\nKolom dataset: {list(X_encoded.columns)}")
-    st.stop()
-
-
-        # Pastikan urutan kolom sesuai model
+        # Validasi kolom agar sesuai dengan model
         expected_cols = model.feature_names_in_
         missing_cols = [col for col in expected_cols if col not in X_encoded.columns]
         extra_cols = [col for col in X_encoded.columns if col not in expected_cols]
@@ -69,6 +62,11 @@ except KeyError as e:
         if extra_cols:
             st.warning(f"⚠️ Dataset Anda memiliki kolom tambahan yang tidak digunakan oleh model: {extra_cols}")
 
+        # Tampilkan untuk debug
+        st.write("📌 Fitur yang diminta model:", list(expected_cols))
+        st.write("📌 Kolom dataset setelah encode:", list(X_encoded.columns))
+
+        # Susun ulang kolom agar cocok
         X_encoded = X_encoded[expected_cols]
 
     except Exception as e:
@@ -78,7 +76,7 @@ except KeyError as e:
     # Prediksi
     y_pred = model.predict(X_encoded)
 
-    # Evaluasi
+    # === Evaluasi ===
     st.subheader("📊 Evaluasi Model")
     acc = accuracy_score(y_true, y_pred)
     prec = precision_score(y_true, y_pred, zero_division=0)
@@ -94,7 +92,7 @@ except KeyError as e:
     csv_eval = eval_df.to_csv(index=False).encode('utf-8')
     st.download_button("⬇️ Download Evaluasi", csv_eval, file_name="evaluasi_model.csv", mime="text/csv")
 
-    # Confusion matrix
+    # Confusion Matrix
     st.subheader("📊 Confusion Matrix")
     cm = confusion_matrix(y_true, y_pred)
     fig, ax = plt.subplots()
