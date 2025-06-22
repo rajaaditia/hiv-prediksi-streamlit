@@ -47,8 +47,15 @@ if uploaded_file:
     X = df.drop('Result', axis=1)
     y_true = df['Result']
 
-    try:
-        X_encoded = preprocess_input(X, label_encoders)
+
+ # Pastikan hanya kolom yang diharapkan yang digunakan, urutannya sama
+try:
+    X_encoded = X_encoded[expected_cols]
+except KeyError as e:
+    st.error("❌ Kolom dalam dataset tidak cocok dengan model yang dilatih. Periksa nama dan urutannya.")
+    st.code(f"Diperlukan kolom: {list(expected_cols)}\nKolom dataset: {list(X_encoded.columns)}")
+    st.stop()
+
 
         # Pastikan urutan kolom sesuai model
         expected_cols = model.feature_names_in_
