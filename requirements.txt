@@ -1,9 +1,6 @@
 streamlit
 pandas
 numpy
-scikit-learn
-seaborn
 matplotlib
-sastrawi
-nltk
-emoji
+seaborn
+scikit-learn>=1.0
