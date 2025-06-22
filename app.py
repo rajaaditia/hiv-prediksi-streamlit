@@ -58,11 +58,15 @@ if uploaded_file:
     rec = recall_score(y_true, y_pred, zero_division=0)
     f1 = f1_score(y_true, y_pred, zero_division=0)
 
-    st.subheader("📊 Evaluasi Model")
-    st.write(f"**Akurasi:** {acc:.2%}")
-    st.write(f"**Precision:** {prec:.2%}")
-    st.write(f"**Recall:** {rec:.2%}")
-    st.write(f"**F1-Score:** {f1:.2%}")
+  st.subheader("📊 Evaluasi Model")
+
+eval_df = pd.DataFrame({
+    'Metrik': ['Akurasi', 'Precision', 'Recall', 'F1-score'],
+    'Hasil (%)': [f"{acc * 100:.2f}%", f"{prec * 100:.2f}%", f"{rec * 100:.2f}%", f"{f1 * 100:.2f}%"]
+})
+
+st.dataframe(eval_df, use_container_width=True)
+
 
     # Confusion Matrix
     cm = confusion_matrix(y_true, y_pred)
